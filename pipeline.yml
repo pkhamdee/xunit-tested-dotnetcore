@@ -1,14 +1,14 @@
 resources:
-- name: seroter-source
+- name: git-codebase
   type: git
   source:
     uri: https://github.com/pkhamdee/xunit-tested-dotnetcore
     branch: master
-- name: pcf-on-aws
+- name: pcf
   type: cf
   source:
     api: https://api.sys.pcfgcp.pkhamdee.com
-    skip_cert_check: false
+    skip_cert_check: true
     username: admin
     password: aW8GtEpkke-ZHd80CA4dHlckZh8Qdc0A
     organization: development
@@ -16,14 +16,14 @@ resources:
 jobs:
 - name: aspnetcore-unit-tests
   plan:
-    - get: seroter-source
+    - get: git-codebase
       trigger: true
     - task: run-tests
       privileged: true
       config:
         platform: linux
         inputs:
-        - name: seroter-source
+        - name: git-codebase
         image_resource:
             type: docker-image
             source:
@@ -33,14 +33,14 @@ jobs:
             args:
             - -exc
             - |
-                cd ./seroter-source
+                cd ./git-codebase
                 dotnet restore
                 dotnet test
 - name: deploy-to-prod
   plan:
-    - get: seroter-source
+    - get: git-codebase
       trigger: true
       passed: [aspnetcore-unit-tests]
-    - put: pcf-on-aws
+    - put: pcf
       params:
-        manifest: seroter-source/manifest.yml
+        manifest: git-codebase/manifest.yml
