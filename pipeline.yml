@@ -1,0 +1,46 @@
+resources:
+- name: seroter-source
+  type: git
+  source:
+    uri: https://github.com/pkhamdee/xunit-tested-dotnetcore
+    branch: master
+- name: pcf-on-aws
+  type: cf
+  source:
+    api: https://api.sys.pcfgcp.pkhamdee.com
+    skip_cert_check: false
+    username: admin
+    password: aW8GtEpkke-ZHd80CA4dHlckZh8Qdc0A
+    organization: development
+    space: test
+jobs:
+- name: aspnetcore-unit-tests
+  plan:
+    - get: seroter-source
+      trigger: true
+    - task: run-tests
+      privileged: true
+      config:
+        platform: linux
+        inputs:
+        - name: seroter-source
+        image_resource:
+            type: docker-image
+            source:
+              repository: microsoft/aspnetcore-build
+        run:
+            path: sh
+            args:
+            - -exc
+            - |
+                cd ./seroter-source
+                dotnet restore
+                dotnet test
+- name: deploy-to-prod
+  plan:
+    - get: seroter-source
+      trigger: true
+      passed: [aspnetcore-unit-tests]
+    - put: pcf-on-aws
+      params:
+        manifest: seroter-source/manifest.yml
