@@ -34,7 +34,8 @@ jobs:
             - -exc
             - |
                 cd ./git-codebase
-                 
+                dotnet restore
+                dotnet test 
 - name: deploy-to-prod
   plan:
     - get: git-codebase
