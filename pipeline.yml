@@ -27,7 +27,7 @@ jobs:
         image_resource:
             type: docker-image
             source:
-              repository: microsoft/aspnetcore-build
+              repository: mcr.microsoft.com/dotnet/core/aspnet:2.2
         run:
             path: sh
             args:
