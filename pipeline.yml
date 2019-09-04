@@ -14,6 +14,29 @@ resources:
     organization: development
     space: test
 jobs:
+- name: aspnetcore-unit-tests
+  plan:
+    - get: seroter-source
+      trigger: true
+    - task: run-tests
+      privileged: true
+      config:
+        platform: linux
+        inputs:
+        - name: seroter-source
+        image_resource:
+            type: docker-image
+            source:
+              repository: microsoft/aspnetcore-build
+        run:
+            path: sh
+            args:
+            - -exc
+            - |
+                cd ./seroter-source
+                dotnet restore
+                dotnet test
+                dotnet publish -r ubuntu.14.04-x64  
 - name: deploy-to-pcf
   plan:
     - get: git-codebase
@@ -21,3 +44,4 @@ jobs:
     - put: pcf
       params:
         manifest: git-codebase/manifest.yml
+        path: seroter-source/bin/Debug/netcoreapp2.0/ubuntu.14.04-x64/publish
